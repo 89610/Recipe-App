@@ -1,0 +1,141 @@
+const recipeContainer = document.getElementById("recipeContainer");
+const sidebar = document.getElementById("sidebar");
+
+let currentInstructions = "";
+
+// Toggle sidebar
+function toggleMenu() {
+    sidebar.classList.toggle("active");
+}
+
+// wrong button clear input
+
+const searchInput = document.getElementById("searchInput");
+  const clearBtn = document.getElementById("clearBtn");
+
+  searchInput.addEventListener("input", () => {
+    clearBtn.style.display = searchInput.value ? "block" : "none";
+  });
+
+  clearBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    clearBtn.style.display = "none";
+    searchInput.focus();
+});
+
+
+
+// Check login before showing page
+// if (localStorage.getItem("isLoggedIn") !== "true") {
+//   window.location.href = "index.html"; 
+//   login.html
+
+// logout function
+// function logout() {
+//   localStorage.removeItem("isLoggedIn");
+//   window.location.href = "index.html";
+// }
+
+// --------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+
+const searchInputs = document.getElementById("searchInput");
+const infoText = document.getElementById("InfoText");
+
+searchInput.addEventListener("input", () => {
+    if (searchInput.value.trim() !== "") {
+        infoText.style.display = "none";
+    } else {
+        infoText.style.display = "block";
+    }
+});
+
+
+// Search recipe
+async function searchRecipe() {
+    const query = document.getElementById("searchInput").value;
+    if (!query) return alert("Enter recipe name");
+
+    const res = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`
+
+    );
+    const data = await res.json();
+    displayRecipes(data.meals);
+}
+
+// Random recipe
+async function randomRecipe() {
+    const res = await fetch(
+        "https://www.themealdb.com/api/json/v1/1/random.php"
+    );
+    const data = await res.json();
+    displayRecipes(data.meals);
+}
+
+// Display recipes
+function displayRecipes(meals) {
+    recipeContainer.innerHTML = "";
+
+    if (!meals) {
+        recipeContainer.innerHTML = "<p style='text-align:center; font-weight: 800; font-family: \"Poppins\", sans-serif; color: red;'>No recipe found.</p>";
+        return;
+    }
+
+    meals.forEach(meal => {
+        const card = document.createElement("div");
+        card.className = "recipe-card";
+
+        card.innerHTML = `
+            <img src="${meal.strMealThumb}">
+            <h4>${meal.strMeal}</h4>
+        `;
+
+        card.onclick = () => openRecipe(meal);
+        recipeContainer.appendChild(card);
+    });
+}
+
+// Open recipe modal
+function openRecipe(meal) {
+    document.getElementById("recipeModal").style.display = "block";
+    document.getElementById("modalTitle").innerText = meal.strMeal;
+    document.getElementById("modalImage").src = meal.strMealThumb;
+
+    currentInstructions = meal.strInstructions;
+    document.getElementById("modalInstructions").innerText = currentInstructions;
+
+    if (meal.strYoutube) {
+        const videoId = meal.strYoutube.split("v=")[1];
+        document.getElementById("modalVideo").src =
+            `https://www.youtube.com/embed/${videoId}`;
+    }
+}
+
+// Close modal
+function closeModal() {
+    document.getElementById("recipeModal").style.display = "none";
+    document.getElementById("modalVideo").src = "";
+}
+
+// Language toggle
+function setLanguage(lang) {
+    if (lang === "en") {
+        document.getElementById("modalInstructions").innerText =
+            currentInstructions;
+    } else if (lang === "ta") {
+  
+    fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(currentInstructions)}&langpair=en|ta`)
+    .then(response => response.json()).then(data => {
+    const translatedText = data.responseData.translatedText;
+    document.getElementById("modalInstructions").innerText = translatedText;
+        
+    });
+        
+  }
+}
+   
+
+
+
